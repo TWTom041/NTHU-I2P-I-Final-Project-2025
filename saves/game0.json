@@ -1,0 +1,213 @@
+{
+  "map": [
+    {
+      "path": "map.tmx",
+      "teleport": [
+        {
+          "x": 24,
+          "y": 23,
+          "destination": "gym.tmx",
+          "dst_x": 12,
+          "dst_y": 12
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "destination": "map2.tmx",
+          "dst_x": 3,
+          "dst_y": 17
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "destination": "map2.tmx",
+          "dst_x": 4,
+          "dst_y": 17
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "destination": "map2.tmx",
+          "dst_x": 5,
+          "dst_y": 17
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "destination": "map2.tmx",
+          "dst_x": 6,
+          "dst_y": 17
+        }
+      ],
+      "player": {
+        "x": 19.0,
+        "y": 31.0
+      },
+      "enemy_trainers": [
+        {
+          "x": 24.0,
+          "y": 29.0,
+          "classification": "stationary",
+          "facing": "DOWN",
+          "max_tiles": 2
+        },
+        {
+          "x": 54.0,
+          "y": 16.0,
+          "classification": "stationary",
+          "facing": "UP",
+          "max_tiles": 2
+        },
+        {
+          "x": 31.0,
+          "y": 31.0,
+          "classification": "stationary",
+          "facing": "UP",
+          "max_tiles": 2
+        },
+        {
+          "x": 40.0,
+          "y": 20.0,
+          "classification": "merchant",
+          "facing": "DOWN",
+          "max_tiles": 0,
+          "inventory": [
+            { "name": "Heal Potion", "price": 5, "sprite_path": "ingame_ui/potion.png", "count": 10 },
+            { "name": "Strength Potion", "price": 5, "sprite_path": "ingame_ui/potion.png", "count": 10 },
+            { "name": "Defense Potion", "price": 5, "sprite_path": "ingame_ui/potion.png", "count": 10 },
+            { "name": "Pokeball", "price": 8, "sprite_path": "ingame_ui/ball.png", "count": 15 }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "gym.tmx",
+      "teleport": [
+        {
+          "x": 11,
+          "y": 14,
+          "destination": "map.tmx",
+          "dst_x": 24,
+          "dst_y": 24
+        },
+        {
+          "x": 12,
+          "y": 14,
+          "destination": "map.tmx",
+          "dst_x": 24,
+          "dst_y": 24
+        },
+        {
+          "x": 13,
+          "y": 14,
+          "destination": "map.tmx",
+          "dst_x": 24,
+          "dst_y": 24
+        }
+      ],
+      "player": {
+        "x": 11.0,
+        "y": 10.0
+      },
+      "enemy_trainers": []
+    },
+    {
+      "path": "map2.tmx",
+      "teleport": [
+        {
+          "x": 3,
+          "y": 19,
+          "destination": "map.tmx",
+          "dst_x": 52,
+          "dst_y": 1
+        },
+        {
+          "x": 4,
+          "y": 19,
+          "destination": "map.tmx",
+          "dst_x": 53,
+          "dst_y": 1
+        },
+        {
+          "x": 5,
+          "y": 19,
+          "destination": "map.tmx",
+          "dst_x": 54,
+          "dst_y": 1
+        },
+        {
+          "x": 6,
+          "y": 19,
+          "destination": "map.tmx",
+          "dst_x": 55,
+          "dst_y": 1
+        }
+      ],
+      "player": {
+        "x": 11.0,
+        "y": 10.0
+      },
+      "enemy_trainers": []
+    }
+  ],
+  "current_map": "map.tmx",
+  "player": {
+    "x": 50.11623651324061,
+    "y": 11.217489911486629
+  },
+  "bag": {
+    "monsters": [
+      {
+        "name": "Pikachu",
+        "element": "Grass",
+        "hp": 24,
+        "max_hp": 100,
+        "level": 15,
+        "sprite_path": "menu_sprites/menusprite1.png"
+      },
+      {
+        "name": "Charizard",
+        "element": "Fire",
+        "hp": 150,
+        "max_hp": 200,
+        "level": 36,
+        "sprite_path": "menu_sprites/menusprite2.png"
+      },
+      {
+        "name": "Wild Fiend",
+        "element": "Water",
+        "hp": 80,
+        "max_hp": 80,
+        "level": 5,
+        "sprite_path": "menu_sprites/menusprite12.png"
+      }
+    ],
+    "items": [
+      {
+        "name": "Heal Potion",
+        "count": 5,
+        "sprite_path": "ingame_ui/potion.png"
+      },
+      {
+        "name": "Strength Potion",
+        "count": 5,
+        "sprite_path": "ingame_ui/potion.png"
+      },
+      {
+        "name": "Defense Potion",
+        "count": 5,
+        "sprite_path": "ingame_ui/potion.png"
+      },
+      {
+        "name": "Coins",
+        "count": 300,
+        "sprite_path": "ingame_ui/coin.png"
+      },
+      {
+        "name": "Pokeball",
+        "count": 10,
+        "sprite_path": "ingame_ui/ball.png"
+      }
+    ]
+  }
+}
