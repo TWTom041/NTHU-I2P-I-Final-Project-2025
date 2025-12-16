@@ -53,22 +53,29 @@ class GameManager:
     def current_teleporter(self) -> list[Teleport]:
         return self.maps[self.current_map_key].teleporters
     
-    def switch_map(self, target: str) -> None:
+    def switch_map(self, target: str, spawn_pos: Position | None = None) -> None:
         if target not in self.maps:
             Logger.warning(f"Map '{target}' not loaded; cannot switch.")
             return
         
         self.next_map = target
+        self.next_player_pos = spawn_pos
         self.should_change_scene = True
             
     def try_switch_map(self) -> None:
         if self.should_change_scene:
             self.current_map_key = self.next_map
+            
+            # 2. Move the player NOW, immediately after the map changes
+            if self.player and self.next_player_pos:
+                self.player.position.x = self.next_player_pos.x
+                self.player.position.y = self.next_player_pos.y
+                self.next_player_pos = None # Reset
+            
             self.next_map = ""
             self.should_change_scene = False
-            # if self.player:
-            #     self.player.position = self.maps[self.current_map_key].spawn
-            
+
+           
     def check_collision(self, rect: pg.Rect) -> bool:
         if self.maps[self.current_map_key].check_collision(rect):
             return True

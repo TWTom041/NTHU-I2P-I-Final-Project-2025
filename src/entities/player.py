@@ -229,8 +229,8 @@ class Player(Entity):
         tp = self.game_manager.current_map.check_teleport(self.position)
         if tp:
             dest = tp.destination
-            self.game_manager.switch_map(dest)
-            self.position = tp.dst_pos
+            self.game_manager.switch_map(dest, tp.dst_pos)
+            # self.position = tp.dst_pos
             self.path = [] # Clear path on teleport
                 
         # Call super update (Entity update) which handles animation tick

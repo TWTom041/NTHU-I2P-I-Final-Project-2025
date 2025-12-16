@@ -8,7 +8,7 @@
           "y": 23,
           "destination": "gym.tmx",
           "dst_x": 12,
-          "dst_y": 12
+          "dst_y": 11.8
         },
         {
           "x": 52,
@@ -85,24 +85,24 @@
       "teleport": [
         {
           "x": 11,
-          "y": 14,
+          "y": 13,
           "destination": "map.tmx",
           "dst_x": 24,
-          "dst_y": 24
+          "dst_y": 24.2
         },
         {
           "x": 12,
-          "y": 14,
+          "y": 13,
           "destination": "map.tmx",
           "dst_x": 24,
-          "dst_y": 24
+          "dst_y": 24.2
         },
         {
           "x": 13,
-          "y": 14,
+          "y": 13,
           "destination": "map.tmx",
           "dst_x": 24,
-          "dst_y": 24
+          "dst_y": 24.2
         }
       ],
       "player": {
