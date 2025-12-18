@@ -9,6 +9,12 @@ from src.sprites import Sprite, Animation
 from typing import override
 
 
+NAV_DESTINATIONS = {
+    "Gym": (24, 24),
+    "Forest Entrance": (54, 5)
+}
+
+
 class GameScene(Scene):
     game_manager: GameManager
     online_manager: OnlineManager | None
@@ -19,13 +25,14 @@ class GameScene(Scene):
     in_setting = False
     in_bag = False
     in_shop = False
+    in_map = False
     volume = 1.0
     is_mute = False
     shop_npc = None
     shop_tab = "buy"
     bag = {"monsters": [], "items": []}
 
-    # ADDED: Variables for minimap caching
+    # Variables for minimap caching
     _cached_minimap_surf: pg.Surface | None = None
     _cached_minimap_path: str | None = None
     _minimap_rect: pg.Rect | None = None
@@ -50,7 +57,12 @@ class GameScene(Scene):
         # Initialize dictionary for remote player animations
         self.remote_players = {}
 
-        # Keep original buttons but we'll reposition them dynamically when opening panels
+        self.map_button = Button(
+            "UI/button_play.png", "UI/button_play_hover.png", # Reusing backpack sprite as placeholder
+            910, 30, 100, 100,
+            lambda *a: self.set_inmap(True)
+        )
+
         self.bag_button = Button(
             "UI/button_backpack.png", "UI/button_backpack_hover.png",
             1030, 30, 100, 100,
@@ -71,6 +83,11 @@ class GameScene(Scene):
             "UI/button_x.png", "UI/button_x_hover.png",
             930, 205, 50, 50,
             lambda *a: self.set_insetting(False)
+        )
+        self.quit_map_button = Button(
+            "UI/button_x.png", "UI/button_x_hover.png",
+            0, 0, 50, 50, # Pos set dynamically
+            lambda *a: self.set_inmap(False)
         )
         self.mute_button = OnOffButton(
             "UI/raw/UI_Flat_ToggleOn03a.png", "UI/raw/UI_Flat_ToggleOff03a.png",
@@ -104,6 +121,8 @@ class GameScene(Scene):
             send_callback=self._on_chat_send,
             get_messages=self._get_chat_messages
         )
+
+        self.nav_buttons : list[Button] = []
 
 
     def load(self):
@@ -147,6 +166,55 @@ class GameScene(Scene):
             panel_w, panel_h = int(screen_w * 0.7), int(screen_h * 0.7)
             cx, cy = screen_w // 2, screen_h // 2
             self._set_widget_pos(self.quit_bag_button, cx + panel_w // 2 - 40, cy - panel_h // 2 + 20, 40, 40)
+
+    def set_inmap(self, val):
+        self.in_map = val
+        if val:
+            self.nav_buttons = []
+            
+            screen_w, screen_h = pg.display.get_surface().get_size()
+            panel_w, panel_h = int(screen_w * 0.5), int(screen_h * 0.6)
+            cx, cy = screen_w // 2, screen_h // 2
+            
+            # Position Close Button
+            self._set_widget_pos(self.quit_map_button, cx + panel_w // 2 - 40, cy - panel_h // 2 + 20, 40, 40)
+            
+            # Generate buttons for each destination
+            start_y = cy - panel_h // 2 + 80
+            for name, coords in NAV_DESTINATIONS.items():
+                # Create a closure to capture the specific coords
+                # We reuse a generic button image (e.g., save button)
+                btn = Button(
+                    "UI/button_save.png", "UI/button_save_hover.png",
+                    cx - 100, start_y, 200, 50,
+                    lambda *_, c=coords: self._navigate_to(c)
+                )
+                # Attach the text label to the button object to draw later
+                btn.label_text = name 
+                self.nav_buttons.append(btn)
+                start_y += 60
+
+    def _navigate_to(self, tile_coords):
+        """Converts tile coords to pixels and triggers player A* pathfinding."""
+        self.set_inmap(False) # Close UI
+        
+        if self.game_manager.player:
+            # Convert Tile Coordinates to World Pixels
+            target_x = tile_coords[0] * GameSettings.TILE_SIZE
+            target_y = tile_coords[1] * GameSettings.TILE_SIZE
+            
+            target_pos = Position(target_x, target_y)
+            current_pos = self.game_manager.player.position
+            
+            # Calculate path
+            path = self.game_manager.player.a_star_search(current_pos, target_pos)
+            
+            if path:
+                self.game_manager.player.path = path
+                self.game_manager.player.moving = True
+                Logger.info(f"Auto-navigating to {tile_coords}")
+            else:
+                Logger.info("Could not find path to destination.")
 
     def set_mute(self, val):
         self.is_mute = val
@@ -225,7 +293,7 @@ class GameScene(Scene):
         # Check if there is assigned next scene
         self.game_manager.try_switch_map()
 
-        if not self.chat_overlay.is_open and not self.in_setting and not self.in_bag and not self.in_shop:
+        if not self.chat_overlay.is_open and not self.in_setting and not self.in_bag and not self.in_shop and not self.in_map:
             if input_manager.key_pressed(pg.K_t):
                 self.chat_overlay.open()
                 # Clear any movement input so player doesn't keep walking while typing
@@ -328,9 +396,14 @@ class GameScene(Scene):
                     if rect.collidepoint(mp) and self.shop_tab == "sell":
                         self._sell_item(idx)
                         break
+        elif self.in_map:
+            self.quit_map_button.update(dt)
+            for btn in self.nav_buttons:
+                btn.update(dt)
         else:
             self.setting_button.update(dt)
             self.bag_button.update(dt)
+            self.map_button.update(dt)
             if self.game_manager.player:
                 for enemy in self.game_manager.current_enemy_trainers:
                     if hasattr(enemy, "is_merchant") and enemy.is_merchant:
@@ -375,7 +448,7 @@ class GameScene(Scene):
             for anim in self.remote_players.values():
                 anim.draw(screen, camera)
 
-        # ADDED: Draw Minimap (Top Right)
+        # Draw Minimap (Top Right)
         if self.game_manager.player:
             self._draw_minimap(screen, camera)
 
@@ -383,11 +456,12 @@ class GameScene(Scene):
         if not (self.in_setting or self.in_bag or self.in_shop):
             self.setting_button.draw(screen)
             self.bag_button.draw(screen)
+            self.map_button.draw(screen)
         
         self.chat_overlay.draw(screen)
 
         # dim background and draw modern rounded panel when a UI is open
-        if self.in_setting or self.in_bag or self.in_shop:
+        if self.in_setting or self.in_bag or self.in_shop or self.in_map:
             screen_w, screen_h = screen.get_size()
             # dim background
             dark = pg.Surface((screen_w, screen_h), pg.SRCALPHA)
@@ -397,6 +471,8 @@ class GameScene(Scene):
             # central panel size (responsive)
             if self.in_setting:
                 panel_w, panel_h = int(screen_w * 0.55), int(screen_h * 0.45)
+            elif self.in_map: # ADDED
+                panel_w, panel_h = int(screen_w * 0.5), int(screen_h * 0.6)
             else:
                 # both bag and shop use the larger panel size
                 panel_w, panel_h = int(screen_w * 0.75), int(screen_h * 0.75)
@@ -427,6 +503,8 @@ class GameScene(Scene):
                 title_text = title_font.render("Settings", True, (10, 10, 10))
             elif self.in_bag:
                 title_text = title_font.render("Bag", True, (10, 10, 10))
+            elif self.in_map:
+                title_text = title_font.render("Navigation", True, (10, 10, 10))
             else:  # shop
                 title_text = title_font.render("Shop", True, (10, 10, 10))
             screen.blit(title_text, (panel_x + 20, panel_y + header_h // 2 - title_text.get_height() // 2))
@@ -441,11 +519,30 @@ class GameScene(Scene):
                 self._draw_setting_ui(screen, (panel_x, panel_y, panel_w, panel_h))
             elif self.in_bag:
                 self._draw_bag_ui(screen, (panel_x, panel_y, panel_w, panel_h))
+            elif self.in_map:
+                self._draw_map_ui(screen, (panel_x, panel_y, panel_w, panel_h))
             else:
                 # shop
                 self._draw_shop_ui(screen, (panel_x, panel_y, panel_w, panel_h))
 
-    # --- ADDED: Minimap Drawing Logic ---
+    def _draw_map_ui(self, screen: pg.Surface, panel_rect):
+        px, py, pw, ph = panel_rect
+        self.quit_map_button.draw(screen)
+        
+        btn_font = resource_manager.get_font("Minecraft.ttf", 20)
+        
+        # Draw destination buttons
+        for btn in self.nav_buttons:
+            btn.draw(screen)
+            # Overlay text on the button
+            if hasattr(btn, "label_text"):
+                txt = btn_font.render(btn.label_text, True, (240, 240, 240))
+                # Center text on button
+                tx = btn.hitbox.centerx - txt.get_width() // 2
+                ty = btn.hitbox.centery - txt.get_height() // 2
+                screen.blit(txt, (tx, ty))
+
+    # Minimap Drawing Logic
     def _draw_minimap(self, screen: pg.Surface, camera: PositionCamera):
         cur_map = self.game_manager.current_map
         
